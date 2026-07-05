@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>汉字听写大赛 · 教师组冲刺刷题系统</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Microsoft YaHei","PingFang SC","Noto Sans SC",sans-serif;background:#f5f0eb;color:#2c2416;min-height:100vh}
+.header{background:linear-gradient(135deg,#8b1a1a,#c0392b);color:#fff;padding:24px 32px;text-align:center;box-shadow:0 2px 12px rgba(139,26,26,.3)}
+.header h1{font-size:28px;margin-bottom:6px;letter-spacing:2px}
+.header p{font-size:14px;opacity:.85}
+.stats-bar{display:flex;justify-content:center;gap:32px;margin-top:14px;flex-wrap:wrap}
+.stat-item{background:rgba(255,255,255,.15);padding:8px 18px;border-radius:20px;font-size:14px}
+.stat-item span{font-weight:bold;font-size:18px;margin:0 4px}
+.tabs{display:flex;flex-wrap:wrap;background:#fff;border-bottom:2px solid #e0d5c7;padding:0 16px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.tab{padding:14px 18px;font-size:15px;cursor:pointer;border:none;background:none;color:#8b7355;border-bottom:3px solid transparent;transition:all .2s;white-space:nowrap}
+.tab:hover{color:#8b1a1a}
+.tab.active{color:#8b1a1a;border-bottom-color:#8b1a1a;font-weight:bold}
+.main{max-width:860px;margin:24px auto;padding:0 16px}
+.card{background:#fff;border-radius:12px;padding:36px 32px;box-shadow:0 2px 16px rgba(0,0,0,.06);text-align:center;min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:all .3s}
+.card .section-title{font-size:13px;color:#ba8c63;letter-spacing:3px;margin-bottom:20px}
+.card .q-num{font-size:14px;color:#aaa;margin-bottom:16px}
+.card .prompt{font-size:42px;font-weight:bold;color:#8b1a1a;margin:16px 0;letter-spacing:2px;line-height:1.4}
+.card .prompt.pinyin{font-size:32px;color:#c0392b}
+.card .prompt.defn{font-size:18px;color:#5c4a3a;font-weight:normal}
+.card .prompt.ctx{font-size:22px;color:#2c2416}
+.card .prompt.poetry{font-size:24px;color:#2c2416;font-style:italic;line-height:1.6}
+.card .prompt .blank{color:#c0392b;border-bottom:3px solid #c0392b;padding:0 6px}
+.card .note{font-size:14px;color:#8b7355;margin:10px 0}
+.answer-area{margin-top:20px;display:none}
+.answer-area.show{display:block;animation:fadeIn .4s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.answer-text{font-size:56px;font-weight:bold;color:#8b1a1a;letter-spacing:12px;margin:16px 0;background:#fdf8f3;padding:20px 40px;border-radius:12px;border:2px dashed #d4b896}
+.answer-note{font-size:15px;color:#c0392b;margin:8px 0;background:#fff5f5;padding:8px 16px;border-radius:8px;display:inline-block}
+.answer-source{font-size:13px;color:#999;margin-top:6px}
+.btn-row{display:flex;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:24px}
+.btn{padding:12px 28px;font-size:16px;border:none;border-radius:8px;cursor:pointer;transition:all .2s;font-family:inherit}
+.btn-primary{background:#8b1a1a;color:#fff}
+.btn-primary:hover{background:#a01f1f;transform:translateY(-1px)}
+.btn-outline{background:#fff;color:#8b1a1a;border:2px solid #8b1a1a}
+.btn-outline:hover{background:#fdf8f3}
+.btn-success{background:#27ae60;color:#fff}
+.btn-success:hover{background:#2ecc71}
+.btn-danger{background:#e74c3c;color:#fff}
+.btn-danger:hover{background:#c0392b}
+.btn-sm{padding:8px 18px;font-size:14px}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.self-assess{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap;justify-content:center}
+.pwrap{margin:20px 0;width:100%}
+.plabel{font-size:13px;color:#8b7355;margin-bottom:6px;display:flex;justify-content:space-between}
+.pbar{height:8px;background:#e8e0d5;border-radius:4px;overflow:hidden}
+.pfill{height:100%;background:linear-gradient(90deg,#8b1a1a,#c0392b);border-radius:4px;transition:width .3s}
+.dtable{width:100%;border-collapse:collapse;margin:16px 0}
+.dtable th,.dtable td{padding:12px 16px;text-align:center;border:1px solid #e0d5c7}
+.dtable th{background:#f5f0eb;color:#8b1a1a;font-size:15px}
+.dtable td{font-size:16px}
+.dtable .cc{font-size:36px;font-weight:bold}
+.review-list{text-align:left;margin-top:16px;max-height:400px;overflow-y:auto;width:100%}
+.review-item{padding:10px 16px;border-bottom:1px solid #e0d5c7;display:flex;justify-content:space-between;align-items:center;font-size:16px}
+.review-item .w{font-weight:bold;color:#8b1a1a;font-size:20px}
+.review-item .py{color:#999;margin-left:12px;font-size:13px}
+.key-hint{font-size:12px;color:#ccc;margin-top:12px}
+.hidden{display:none!important}
+@media(max-width:640px){.header h1{font-size:22px}.card{padding:24px 16px}.card .prompt{font-size:28px}.answer-text{font-size:40px;letter-spacing:6px}.tab{padding:10px 12px;font-size:13px}}
+</style>
+</head>
+<body>
+<div class="header">
+<h1>汉字听写大赛 · 教师组冲刺刷题</h1>
+<p>高密度突击训练 · 覆盖比赛全部环节 · 按空格键显示答案</p>
+<div class="stats-bar">
+<div class="stat-item">今日刷题 <span id="tT">0</span> 题</div>
+<div class="stat-item">答对 <span id="tC">0</span> 题</div>
+<div class="stat-item">待复习 <span id="rC">0</span> 题</div>
+<div class="stat-item" style="cursor:pointer" onclick="resetAll()">重置</div>
+</div>
+</div>
+<div class="tabs" id="tabBar"></div>
+<div class="main"><div class="card" id="card"><div style="color:#aaa;font-size:18px">选择上方题型开始刷题</div></div>
+<div class="key-hint">按 <b>空格键</b> 显示答案 | <b>→</b> 下一题 | <b>A</b> 会 / <b>D</b> 不会</div></div>
+<script>
+// ==============================
+// 超大题库（JS直接嵌入）
+// ==============================
+const DICT=[
+{word:"鞭笞",py:"bian chi",df:"用鞭子抽打；比喻严厉批判",nt:"笞≠苔"},
+{word:"桎梏",py:"zhi gu",df:"脚镣和手铐；比喻束缚",nt:"桎≠侄，梏≠告"},
+{word:"纨绔",py:"wan ku",df:"细绢做的裤子；借指富贵子弟",nt:"纨≠执，绔≠夸"},
+{word:"觊觎",py:"ji yu",df:"希望得到（不应得的东西）",nt:"觊≠凯，觎≠俞"},
+{word:"龃龉",py:"ju yu",df:"上下齿不对应；比喻意见不合",nt:"龃≠且，龉≠吾"},
+{word:"饕餮",py:"tao tie",df:"传说中的凶兽；比喻贪吃",nt:"两个都是食字旁"},
+{word:"囹圄",py:"ling yu",df:"监狱，牢狱",nt:"囹≠令，圄≠吾"},
+{word:"魑魅",py:"chi mei",df:"传说中山林里的鬼怪",nt:"两个字都是鬼字旁"},
+{word:"魍魉",py:"wang liang",df:"传说中的山川精怪",nt:"两个字都是鬼字旁"},
+{word:"耄耋",py:"mao die",df:"八九十岁的老人",nt:"耄≠毛，耋≠至"},
+{word:"旮旯",py:"ga la",df:"角落；偏僻的地方",nt:"日+九结构"},
+{word:"齑粉",py:"ji fen",df:"细粉、碎屑",nt:"齑=齐+韭"},
+{word:"吝啬",py:"lin se",df:"过分爱惜财物，小气",nt:"啬≠墙的右半"},
+{word:"缱绻",py:"qian quan",df:"感情深厚、难舍难分",nt:"都是绞丝旁"},
+{word:"蹒跚",py:"pan shan",df:"腿脚不灵便，走路摇晃",nt:"足字旁；蹒≠满"},
+{word:"踟蹰",py:"chi chu",df:"心里迟疑，要走不走",nt:"足字旁；踟≠知"},
+{word:"趔趄",py:"lie qie",df:"身体歪斜，脚步不稳",nt:"走之底"},
+{word:"醍醐",py:"ti hu",df:"酥酪上凝聚的油；比喻智慧",nt:"酉字旁"},
+{word:"酩酊",py:"ming ding",df:"醉得迷迷糊糊",nt:"酉字旁；酊≠丁"},
+{word:"蹉跎",py:"cuo tuo",df:"光阴白白地过去",nt:"足字旁"},
+{word:"尴尬",py:"gan ga",df:"处境困难不好处理",nt:"尢不是九"},
+{word:"旖旎",py:"yi ni",df:"柔和美好（多形容风景）",nt:"方字旁"},
+{word:"氤氲",py:"yin yun",df:"烟气弥漫",nt:"气字头"},
+{word:"藩篱",py:"fan li",df:"篱笆；比喻界限",nt:"藩≠潘"},
+{word:"蹙额",py:"cu e",df:"皱着眉头",nt:"蹙≠戚"},
+{word:"忖度",py:"cun duo",df:"推测，揣度",nt:"忖≠寸"},
+{word:"掣肘",py:"che zhou",df:"拉住胳膊；比喻阻挠",nt:"掣≠制"},
+{word:"喟叹",py:"kui tan",df:"因感慨而叹气",nt:"喟≠胃"},
+{word:"编纂",py:"bian zuan",df:"编辑整理",nt:"纂≠篡"},
+{word:"篡改",py:"cuan gai",df:"用作伪手段改动",nt:"篡≠纂"},
+{word:"部署",py:"bu shu",df:"安排布置（人力任务）",nt:"部≠布"},
+{word:"安详",py:"an xiang",df:"从容不迫，稳重",nt:"详≠祥"},
+{word:"烦躁",py:"fan zao",df:"烦闷急躁",nt:"躁≠燥"},
+{word:"干燥",py:"gan zao",df:"没有水分",nt:"燥≠躁"},
+{word:"寒暄",py:"han xuan",df:"见面时的应酬话",nt:"暄≠喧"},
+{word:"喧哗",py:"xuan hua",df:"声音大而杂乱",nt:"喧≠暄"},
+{word:"气概",py:"qi gai",df:"在重大问题上的气势",nt:"概≠慨"},
+{word:"感慨",py:"gan kai",df:"有所感触而慨叹",nt:"慨≠概"},
+{word:"辐射",py:"fu she",df:"从中心向外伸展",nt:"辐≠幅"},
+{word:"幅员",py:"fu yuan",df:"领土面积",nt:"幅≠辐"},
+{word:"粗犷",py:"cu guang",df:"粗豪，豪放",nt:"犷读guang非kuang"},
+{word:"装帧",py:"zhuang zhen",df:"书刊装潢设计",nt:"帧读zhen"},
+{word:"沉湎",py:"chen mian",df:"沉溺不能自拔",nt:"湎≠缅"},
+{word:"缅怀",py:"mian huai",df:"追想已往的人或事",nt:"缅≠湎"},
+{word:"厮杀",py:"si sha",df:"互相拼杀",nt:"厮≠撕"},
+{word:"真谛",py:"zhen di",df:"真实的意义",nt:"谛≠缔"},
+{word:"坐落",py:"zuo luo",df:"建筑物位于某处",nt:"坐≠座"},
+{word:"即使",py:"ji shi",df:"表示假设让步",nt:"即≠既"},
+{word:"既然",py:"ji ran",df:"已经如此",nt:"既≠即"},
+{word:"凑合",py:"cou he",df:"将就，勉强",nt:"合≠和"},
+{word:"发轫",py:"fa ren",df:"新事物开始",nt:"轫≠韧"},
+{word:"痉挛",py:"jing luan",df:"肌肉不自然收缩",nt:"痉≠经"},
+{word:"皎洁",py:"jiao jie",df:"明亮洁白（多指月光）",nt:"皎≠狡"},
+{word:"青睐",py:"qing lai",df:"对人的喜爱或重视",nt:"睐≠来"},
+{word:"怄气",py:"ou qi",df:"闹别扭，生闷气",nt:"怄≠呕"},
+{word:"白皙",py:"bai xi",df:"白净（指皮肤）",nt:"皙≠析"},
+{word:"清晰",py:"qing xi",df:"清楚",nt:"晰≠皙"},
+{word:"肇事",py:"zhao shi",df:"引起事故",nt:"肇≠启"},
+{word:"证券",py:"zheng quan",df:"有价证券",nt:"券≠卷"},
+{word:"入场券",py:"ru chang quan",df:"入场凭证",nt:"券≠卷"},
+{word:"针灸",py:"zhen jiu",df:"中医针法和灸法",nt:"灸≠炙"},
+{word:"脉搏",py:"mai bo",df:"动脉的跳动",nt:"搏≠博"},
+{word:"赌博",py:"du bo",df:"以财物比输赢",nt:"博≠搏"},
+{word:"松弛",py:"song chi",df:"不紧张，松懈",nt:"弛≠驰"},
+{word:"奔驰",py:"ben chi",df:"飞快地跑",nt:"驰≠弛"},
+{word:"竣工",py:"jun gong",df:"工程完成",nt:"竣≠峻"},
+{word:"严峻",py:"yan jun",df:"严厉严肃",nt:"峻≠竣"},
+{word:"玷污",py:"dian wu",df:"弄脏；比喻辱没",nt:"玷≠沾"},
+{word:"妥帖",py:"tuo tie",df:"恰当合适",nt:"帖≠贴"},
+{word:"津贴",py:"jin tie",df:"工资以外的补助",nt:"贴≠帖"},
+{word:"陷阱",py:"xian jing",df:"比喻害人圈套",nt:"阱≠井"},
+{word:"贸然",py:"mao ran",df:"轻率地",nt:"贸≠冒"},
+{word:"抉择",py:"jue ze",df:"挑选选择",nt:"抉≠决"},
+{word:"诀别",py:"jue bie",df:"不易再见的离别",nt:"诀≠抉"},
+{word:"谄媚",py:"chan mei",df:"用卑贱态度讨好",nt:"谄≠陷"},
+{word:"亵渎",py:"xie du",df:"轻慢不尊敬",nt:"亵≠袭"},
+{word:"璀璨",py:"cui can",df:"光彩夺目",nt:"璀≠崔"},
+{word:"斑驳",py:"ban bo",df:"色彩杂乱",nt:"驳≠博"},
+{word:"陨落",py:"yun luo",df:"星体从高空掉下",nt:"陨≠殒"},
+{word:"殒命",py:"yun ming",df:"丧失生命",nt:"殒≠陨"},
+{word:"凋敝",py:"diao bi",df:"衰败萧条",nt:"敝≠弊"},
+{word:"弊端",py:"bi duan",df:"弊病害处",nt:"弊≠敝"},
+{word:"羁绊",py:"ji ban",df:"被缠住不能脱身",nt:"羁≠革"},
+{word:"桀骜",py:"jie ao",df:"倔强不顺从",nt:"骜≠敖"},
+{word:"攫取",py:"jue qu",df:"掠夺，夺取",nt:"攫≠矍"},
+{word:"惴惴",py:"zhui zhui",df:"又发愁又害怕",nt:"惴≠喘"},
+{word:"颀长",py:"qi chang",df:"身材修长",nt:"颀≠欣"},
+{word:"佝偻",py:"gou lou",df:"脊背向前弯曲",nt:"佝≠句"},
+{word:"褴褛",py:"lan lv",df:"衣服破烂",nt:"都是衣字旁"},
+{word:"揶揄",py:"ye yu",df:"嘲笑戏弄",nt:"都是提手旁"},
+{word:"斡旋",py:"wo xuan",df:"调解周旋",nt:"斡≠干"},
+{word:"罹难",py:"li nan",df:"遭遇灾祸死亡",nt:"罹≠罗"},
+{word:"赝品",py:"yan pin",df:"伪造的东西",nt:"赝≠鹰"},
+{word:"羸弱",py:"lei ruo",df:"瘦弱",nt:"羸≠赢≠嬴"},
+{word:"吞噬",py:"tun shi",df:"吞食并吞",nt:"噬≠筮"},
+{word:"忸怩",py:"niu ni",df:"不好意思不大方",nt:"都是竖心旁"},
+{word:"腼腆",py:"mian tian",df:"害羞不自然",nt:"都是月字旁"},
+{word:"梦魇",py:"meng yan",df:"睡梦中呼吸困难",nt:"魇≠靥≠厌"},
+{word:"笑靥",py:"xiao ye",df:"笑脸上的酒窝",nt:"靥≠魇"},
+{word:"梦呓",py:"meng yi",df:"梦话",nt:"呓≠艺"},
+{word:"剽悍",py:"piao han",df:"敏捷勇猛",nt:"剽≠骠"},
+{word:"端倪",py:"duan ni",df:"事情眉目",nt:"倪≠霓"},
+{word:"邂逅",py:"xie hou",df:"偶然遇见",nt:"走之底"},
+{word:"诟病",py:"gou bing",df:"指责批评",nt:"诟≠垢"},
+{word:"龌龊",py:"wo chuo",df:"不干净；比喻品质恶劣",nt:"齿字旁"},
+{word:"饯行",py:"jian xing",df:"设酒食送行",nt:"饯≠践"},
+{word:"戕害",py:"qiang hai",df:"残害伤害",nt:"戕≠戈"},
+{word:"瞠目",py:"cheng mu",df:"瞪着眼睛直视",nt:"瞠≠堂"},
+{word:"箴言",py:"zhen yan",df:"规劝告诫的话",nt:"箴≠缄"},
+{word:"缄默",py:"jian mo",df:"闭口不说话",nt:"缄≠箴"},
+{word:"涟漪",py:"lian yi",df:"水面细小波纹",nt:"漪≠倚"},
+{word:"嗟叹",py:"jie tan",df:"叹息",nt:"嗟≠差"},
+{word:"怆然",py:"chuang ran",df:"悲伤的样子",nt:"怆≠仓"},
+{word:"讪笑",py:"shan xiao",df:"讥笑",nt:"讪≠山"},
+{word:"掮客",py:"qian ke",df:"替人介绍买卖赚佣金",nt:"掮≠肩"},
+{word:"赧然",py:"nan ran",df:"害羞脸红的样子",nt:"赧≠报"},
+{word:"滂沱",py:"pang tuo",df:"雨下得很大",nt:"滂≠旁"},
+{word:"吮吸",py:"shun xi",df:"合拢嘴唇吸取",nt:"吮≠允"},
+{word:"酗酒",py:"xu jiu",df:"无节制喝酒",nt:"酗≠凶"},
+{word:"破绽",py:"po zhan",df:"比喻言行中的漏洞",nt:"绽≠淀"},
+{word:"按捺",py:"an na",df:"抑制压下去",nt:"捺≠奈"},
+{word:"哂笑",py:"shen xiao",df:"微笑（含讥讽意）",nt:"哂≠西"},
+{word:"皈依",py:"gui yi",df:"归向依托（信仰）",nt:"皈≠反"},
+{word:"冉冉",py:"ran ran",df:"慢慢地升起",nt:"冉≠再"},
+{word:"蛊惑",py:"gu huo",df:"毒害迷惑",nt:"蛊≠盅"},
+{word:"罹患",py:"li huan",df:"遭受患上（病）",nt:"罹≠罗"},
+];
+
+const IDM=[
+{idiom:"螳臂当车",py:"tang bi dang che",df:"比喻不自量力",nt:"螳≠堂"},
+{idiom:"韦编三绝",py:"wei bian san jue",df:"形容读书勤奋",nt:"韦≠伟，绝≠决"},
+{idiom:"鞭辟入里",py:"bian pi ru li",df:"分析透彻",nt:"辟≠僻"},
+{idiom:"川流不息",py:"chuan liu bu xi",df:"车船行人来往不断",nt:"川≠穿"},
+{idiom:"迫不及待",py:"po bu ji dai",df:"急迫得不能再等",nt:"及≠急"},
+{idiom:"甘拜下风",py:"gan bai xia feng",df:"自认不如对方",nt:"拜≠败"},
+{idiom:"自暴自弃",py:"zi bao zi qi",df:"不求上进",nt:"暴≠抱"},
+{idiom:"食不果腹",py:"shi bu guo fu",df:"吃不饱肚子",nt:"果≠裹"},
+{idiom:"不胫而走",py:"bu jing er zou",df:"消息传播很快",nt:"胫≠径"},
+{idiom:"按部就班",py:"an bu jiu ban",df:"按条理步骤做事",nt:"部≠步"},
+{idiom:"别出心裁",py:"bie chu xin cai",df:"独创一格",nt:"裁≠才"},
+{idiom:"不落窠臼",py:"bu luo ke jiu",df:"不落俗套",nt:"窠≠巢"},
+{idiom:"沧海一粟",py:"cang hai yi su",df:"非常渺小",nt:"粟≠栗"},
+{idiom:"出类拔萃",py:"chu lei ba cui",df:"超出同类之上",nt:"萃≠粹"},
+{idiom:"唇枪舌剑",py:"chun qiang she jian",df:"争论激烈",nt:"剑≠箭"},
+{idiom:"殚精竭虑",py:"dan jing jie lv",df:"用尽精力费尽心思",nt:"殚≠惮"},
+{idiom:"断壁残垣",py:"duan bi can yuan",df:"房屋破败",nt:"垣≠桓≠恒"},
+{idiom:"耳濡目染",py:"er ru mu ran",df:"不知不觉受影响",nt:"濡≠儒"},
+{idiom:"纷至沓来",py:"fen zhi ta lai",df:"连续不断地到来",nt:"沓≠踏"},
+{idiom:"釜底抽薪",py:"fu di chou xin",df:"从根本上解决",nt:"釜≠斧"},
+{idiom:"各行其是",py:"ge xing qi shi",df:"各自按自己认为对的做法",nt:"是≠事"},
+{idiom:"故步自封",py:"gu bu zi feng",df:"守着老一套不求进步",nt:"故≠固"},
+{idiom:"好高骛远",py:"hao gao wu yuan",df:"不切实际追求过高目标",nt:"骛≠鹜"},
+{idiom:"趋之若鹜",py:"qu zhi ruo wu",df:"很多人争相追逐",nt:"鹜≠骛"},
+{idiom:"黄粱美梦",py:"huang liang mei meng",df:"虚幻的梦想",nt:"粱≠梁"},
+{idiom:"矫揉造作",py:"jiao rou zao zuo",df:"过分做作",nt:"矫≠娇"},
+{idiom:"鸠占鹊巢",py:"jiu zhan que chao",df:"强占别人住处",nt:"鹊≠雀"},
+{idiom:"开源节流",py:"kai yuan jie liu",df:"增加收入节省支出",nt:"节≠截"},
+{idiom:"老生常谈",py:"lao sheng chang tan",df:"听厌了的老话",nt:"常≠长"},
+{idiom:"历历在目",py:"li li zai mu",df:"清楚地呈现在眼前",nt:"历≠厉"},
+{idiom:"流连忘返",py:"liu lian wang fan",df:"留恋不止忘了回去",nt:"连≠恋"},
+{idiom:"墨守成规",py:"mo shou cheng gui",df:"因循守旧不肯改进",nt:"墨≠默"},
+{idiom:"平心而论",py:"ping xin er lun",df:"平心静气地评论",nt:"平≠凭"},
+{idiom:"气冲霄汉",py:"qi chong xiao han",df:"大无畏气概",nt:"霄≠宵"},
+{idiom:"前仆后继",py:"qian pu hou ji",df:"前面倒下后面跟上",nt:"仆≠扑"},
+{idiom:"融会贯通",py:"rong hui guan tong",df:"融合贯穿各方面",nt:"会≠汇"},
+{idiom:"如雷贯耳",py:"ru lei guan er",df:"形容名声很大",nt:"贯≠灌"},
+{idiom:"世外桃源",py:"shi wai tao yuan",df:"安乐美好之地",nt:"源≠园"},
+{idiom:"谈笑风生",py:"tan xiao feng sheng",df:"有说有笑",nt:"生≠声"},
+{idiom:"铤而走险",py:"ting er zou xian",df:"无路可走时冒险",nt:"铤≠挺"},
+{idiom:"无精打采",py:"wu jing da cai",df:"没有精神",nt:"采≠彩"},
+{idiom:"相形见绌",py:"xiang xing jian chu",df:"比较起来显得不如",nt:"绌≠拙"},
+{idiom:"心浮气躁",py:"xin fu qi zao",df:"内心浮躁",nt:"躁≠燥"},
+{idiom:"一筹莫展",py:"yi chou mo zhan",df:"一点办法也没有",nt:"筹≠愁"},
+{idiom:"一诺千金",py:"yi nuo qian jin",df:"形容说话算数",nt:"诺≠偌"},
+{idiom:"饮鸩止渴",py:"yin zhen zhi ke",df:"只图眼前不顾后患",nt:"鸩≠鸠"},
+{idiom:"忧心忡忡",py:"you xin chong chong",df:"忧愁不安",nt:"忡≠冲"},
+{idiom:"越俎代庖",py:"yue zu dai pao",df:"越职处理别人事",nt:"俎≠阻"},
+{idiom:"崭露头角",py:"zhan lu tou jiao",df:"显示出才能",nt:"崭≠斩"},
+{idiom:"张皇失措",py:"zhang huang shi cuo",df:"慌慌张张",nt:"皇≠惶"},
+{idiom:"直截了当",py:"zhi jie liao dang",df:"简单爽快",nt:"截≠接"},
+{idiom:"中流砥柱",py:"zhong liu di zhu",df:"坚强支柱",nt:"砥≠抵"},
+{idiom:"蛛丝马迹",py:"zhu si ma ji",df:"隐约可寻的线索",nt:"马≠蚂"},
+{idiom:"纵横捭阖",py:"zong heng bai he",df:"运用手段联合分化",nt:"捭≠俾"},
+{idiom:"高屋建瓴",py:"gao wu jian ling",df:"居高临下势不可挡",nt:"瓴≠领"},
+{idiom:"海市蜃楼",py:"hai shi shen lou",df:"虚无缥缈",nt:"蜃≠辰"},
+{idiom:"未雨绸缪",py:"wei yu chou mou",df:"事先做好准备",nt:"绸缪都是绞丝旁"},
+{idiom:"风声鹤唳",py:"feng sheng he li",df:"惊慌疑惧",nt:"唳≠戾"},
+{idiom:"筚路蓝缕",py:"bi lu lan lv",df:"创业艰苦",nt:"筚≠毕"},
+{idiom:"弹冠相庆",py:"tan guan xiang qing",df:"同伙庆贺",nt:"弹≠掸"},
+{idiom:"罄竹难书",py:"qing zhu nan shu",df:"罪行极多",nt:"罄≠馨"},
+{idiom:"如火如荼",py:"ru huo ru tu",df:"旺盛热烈",nt:"荼≠茶"},
+{idiom:"按图索骥",py:"an tu suo ji",df:"按线索寻找",nt:"骥≠冀"},
+{idiom:"惩前毖后",py:"cheng qian bi hou",df:"吸取教训以后小心",nt:"毖≠毕"},
+{idiom:"凤毛麟角",py:"feng mao lin jiao",df:"稀少珍贵",nt:"麟≠鳞"},
+{idiom:"功亏一篑",py:"gong kui yi kui",df:"只差最后一点",nt:"篑≠匮"},
+{idiom:"鬼鬼祟祟",py:"gui gui sui sui",df:"偷偷摸摸",nt:"祟≠崇"},
+{idiom:"沆瀣一气",py:"hang xie yi qi",df:"臭味相投勾结",nt:"沆≠亢"},
+{idiom:"怙恶不悛",py:"hu e bu quan",df:"坚持作恶不肯悔改",nt:"悛≠俊"},
+{idiom:"卖官鬻爵",py:"mai guan yu jue",df:"掌权者出卖官职",nt:"鬻≠粥"},
+{idiom:"牝鸡司晨",py:"pin ji si chen",df:"比喻妇女窃权乱政",nt:"牝≠牡"},
+{idiom:"三缄其口",py:"san jian qi kou",df:"说话极为谨慎",nt:"缄≠箴"},
+{idiom:"色厉内荏",py:"se li nei ren",df:"外表强硬内心怯懦",nt:"荏≠任"},
+{idiom:"睚眦必报",py:"ya zi bi bao",df:"极小的怨恨也报复",nt:"眦≠此"},
+{idiom:"揠苗助长",py:"ya miao zhu zhang",df:"违反规律急于求成",nt:"揠≠偃"},
+{idiom:"一丘之貉",py:"yi qiu zhi he",df:"彼此相同没有差别",nt:"貉≠各"},
+{idiom:"拾人牙慧",py:"shi ren ya hui",df:"抄袭因袭",nt:"慧≠惠"},
+{idiom:"为虎作伥",py:"wei hu zuo chang",df:"做恶人的帮凶",nt:"伥≠长"},
+{idiom:"兴高采烈",py:"xing gao cai lie",df:"兴致高情绪热烈",nt:"采≠彩"},
+{idiom:"以逸待劳",py:"yi yi dai lao",df:"安闲待疲劳之敌",nt:"待≠代"},
+{idiom:"源远流长",py:"yuan yuan liu chang",df:"历史悠久",nt:"源≠渊"},
+{idiom:"再接再厉",py:"zai jie zai li",df:"继续努力",nt:"厉≠励"},
+{idiom:"仗义执言",py:"zhang yi zhi yan",df:"主持正义说公道话",nt:"执≠直"},
+{idiom:"枕戈待旦",py:"zhen ge dai dan",df:"时刻准备战斗",nt:"旦≠担"},
+{idiom:"掷地有声",py:"zhi di you sheng",df:"话语铿锵有力",nt:"掷≠郑"},
+{idiom:"置若罔闻",py:"zhi ruo wang wen",df:"不重视不关心",nt:"罔≠惘"},
+{idiom:"捉襟见肘",py:"zhuo jin jian zhou",df:"顾此失彼",nt:"肘≠纣"},
+];
+
+const CMP=[
+{cm:"木 + 子",ans:"李",hint:"姓氏"},
+{cm:"日 + 月",ans:"明",hint:"光亮"},
+{cm:"人 + 言",ans:"信",hint:"诚信"},
+{cm:"木 + 几",ans:"机",hint:"机械"},
+{cm:"女 + 生",ans:"姓",hint:"姓氏"},
+{cm:"口 + 天",ans:"吴",hint:"姓氏"},
+{cm:"雨 + 田",ans:"雷",hint:"雷电"},
+{cm:"火 + 丁",ans:"灯",hint:"照明"},
+{cm:"石 + 水",ans:"泵",hint:"抽水机械"},
+{cm:"目 + 水",ans:"泪",hint:"眼泪"},
+{cm:"禾 + 火",ans:"秋",hint:"季节"},
+{cm:"田 + 力",ans:"男",hint:"性别"},
+{cm:"鱼 + 羊",ans:"鲜",hint:"味道"},
+{cm:"小 + 土",ans:"尘",hint:"灰尘"},
+{cm:"不 + 正",ans:"歪",hint:"不正"},
+{cm:"竹 + 毛",ans:"笔",hint:"书写工具"},
+{cm:"山 + 石",ans:"岩",hint:"岩石"},
+{cm:"人 + 木",ans:"休",hint:"休息"},
+{cm:"木 + 木",ans:"林",hint:"树林"},
+{cm:"木 + 木 + 木",ans:"森",hint:"森林"},
+{cm:"人 + 人",ans:"从",hint:"跟随"},
+{cm:"人 + 人 + 人",ans:"众",hint:"众多"},
+{cm:"口 + 口 + 口",ans:"品",hint:"品质"},
+{cm:"日 + 日 + 日",ans:"晶",hint:"光亮"},
+{cm:"石 + 石 + 石",ans:"磊",hint:"光明磊落"},
+{cm:"金 + 金 + 金",ans:"鑫",hint:"财富兴盛"},
+{cm:"水 + 水 + 水",ans:"淼",hint:"水大"},
+{cm:"火 + 火 + 火",ans:"焱",hint:"火花"},
+{cm:"土 + 土 + 土",ans:"垚",hint:"山高"},
+{cm:"牛 + 牛 + 牛",ans:"犇",hint:"奔跑"},
+{cm:"贝 + 戎",ans:"贼",hint:"小偷"},
+{cm:"寸 + 木",ans:"村",hint:"村庄"},
+{cm:"口 + 内",ans:"呐",hint:"呐喊"},
+{cm:"禾 + 口",ans:"和",hint:"和平"},
+{cm:"己 + 心",ans:"忌",hint:"忌讳"},
+{cm:"木 + 白",ans:"柏",hint:"柏树"},
+{cm:"禾 + 中",ans:"种",hint:"种子"},
+{cm:"日 + 生",ans:"星",hint:"星星"},
+{cm:"日 + 寸",ans:"时",hint:"时间"},
+{cm:"月 + 半",ans:"胖",hint:"肥胖"},
+{cm:"王 + 里",ans:"理",hint:"道理"},
+{cm:"石 + 少",ans:"砂",hint:"沙子"},
+{cm:"目 + 分",ans:"盼",hint:"盼望"},
+{cm:"虫 + 工",ans:"虹",hint:"彩虹"},
+{cm:"舟 + 见",ans:"舰",hint:"军舰"},
+{cm:"阝+ 东",ans:"陈",hint:"姓氏"},
+{cm:"氵+ 可",ans:"河",hint:"河流"},
+{cm:"忄+ 青",ans:"情",hint:"情感"},
+{cm:"纟+ 工",ans:"红",hint:"颜色"},
+{cm:"衤+ 皮",ans:"被",hint:"被子"},
+{cm:"辶+ 首",ans:"道",hint:"道路"},
+{cm:"宀+ 豕",ans:"家",hint:"家庭"},
+{cm:"饣+ 司",ans:"饲",hint:"饲养"},
+{cm:"广 + 林",ans:"麻",hint:"麻类"},
+{cm:"疒+ 丙",ans:"病",hint:"疾病"},
+{cm:"酉+ 己",ans:"配",hint:"配合"},
+{cm:"钅+ 斤",ans:"斩",hint:"斩断"},
+{cm:"尸 + 水",ans:"尿",hint:"排泄物"},
+];
+
+const POE=[
+{wg:"床前明月光，疑是地上双",wc:"双",cc:"霜",src:"李白《静夜思》"},
+{wg:"春眠不觉晓，处处闻蹄鸟",wc:"蹄",cc:"啼",src:"孟浩然《春晓》"},
+{wg:"白日依山近，黄河入海流",wc:"近",cc:"尽",src:"王之涣《登鹳雀楼》"},
+{wg:"欲穷千里目，更上一层搂",wc:"搂",cc:"楼",src:"王之涣《登鹳雀楼》"},
+{wg:"锄禾日当午，汉滴禾下土",wc:"汉",cc:"汗",src:"李绅《悯农》"},
+{wg:"飞流直下三千尺，疑是银河落久天",wc:"久",cc:"九",src:"李白《望庐山瀑布》"},
+{wg:"举头望明月，底头思故乡",wc:"底",cc:"低",src:"李白《静夜思》"},
+{wg:"姑苏城外寒山寺，夜半钟声到客般",wc:"般",cc:"船",src:"张继《枫桥夜泊》"},
+{wg:"月落乌蹄霜满天，江枫渔火对愁眠",wc:"蹄",cc:"啼",src:"张继《枫桥夜泊》"},
+{wg:"远上寒山石径霞，白云生处有人家",wc:"霞",cc:"斜",src:"杜牧《山行》"},
+{wg:"停车坐爱枫林晚，双叶红于二月花",wc:"双",cc:"霜",src:"杜牧《山行》"},
+{wg:"独在异乡为异客，每逢佳节倍思青",wc:"青",cc:"亲",src:"王维《九月九日忆山东兄弟》"},
+{wg:"接天莲叶无穷壁，映日荷花别样红",wc:"壁",cc:"碧",src:"杨万里《晓出净慈寺》"},
+{wg:"春风又绿江南暗，明月何时照我还",wc:"暗",cc:"岸",src:"王安石《泊船瓜洲》"},
+{wg:"竹外桃花三两支，春江水暖鸭先知",wc:"支",cc:"枝",src:"苏轼《惠崇春江晚景》"},
+{wg:"但使龙城飞将在，不叫胡马度阴山",wc:"叫",cc:"教",src:"王昌龄《出塞》"},
+{wg:"葡萄美酒夜光杯，欲饮琵琶马上摧",wc:"摧",cc:"催",src:"王翰《凉州词》"},
+{wg:"黄河远上白云间，一片估城万仞山",wc:"估",cc:"孤",src:"王之涣《凉州词》"},
+{wg:"洛阳亲友如相问，一片冰心在玉湖",wc:"湖",cc:"壶",src:"王昌龄《芙蓉楼送辛渐》"},
+{wg:"明月松间照，青泉石上流",wc:"青",cc:"清",src:"王维《山居秋暝》"},
+{wg:"随意春芳歇，王孙自可流",wc:"流",cc:"留",src:"王维《山居秋暝》"},
+{wg:"气蒸云梦泽，波憾岳阳城",wc:"憾",cc:"撼",src:"孟浩然《望洞庭湖》"},
+{wg:"欲济无舟楫，端居齿圣明",wc:"齿",cc:"耻",src:"孟浩然《望洞庭湖》"},
+{wg:"坐观垂钓者，图有羡鱼情",wc:"图",cc:"徒",src:"孟浩然《望洞庭湖》"},
+{wg:"大漠孤烟直，长河落日园",wc:"园",cc:"圆",src:"王维《使至塞上》"},
+{wg:"山重水复疑无路，柳岸花明又一村",wc:"岸",cc:"暗",src:"陆游《游山西村》"},
+{wg:"人生自古谁无死，留取丹心照汗清",wc:"清",cc:"青",src:"文天祥《过零丁洋》"},
+{wg:"采橘东篱下，悠然见南山",wc:"橘",cc:"菊",src:"陶渊明《饮酒》"},
+{wg:"此中有真意，欲辩已忘言",wc:"辩",cc:"辨",src:"陶渊明《饮酒》"},
+{wg:"海内存知己，天崖若比邻",wc:"崖",cc:"涯",src:"王勃《送杜少府之任蜀州》"},
+{wg:"感时花见泪，恨别鸟惊心",wc:"见",cc:"溅",src:"杜甫《春望》"},
+{wg:"黑云压城城欲催，甲光向日金鳞开",wc:"催",cc:"摧",src:"李贺《雁门太守行》"},
+{wg:"东风不与周朗便，铜雀春深锁二乔",wc:"朗",cc:"郎",src:"杜牧《赤壁》"},
+{wg:"折戟沉沙铁未消，自将磨洗认前朝",wc:"消",cc:"销",src:"杜牧《赤壁》"},
+];
+
+const FLB=[
+{ctx:"___ 疾忌医",ans:"讳",hint:"隐瞒"},
+{ctx:"按___就班",ans:"部",hint:"部≠步"},
+{ctx:"___ 心沥血",ans:"呕",hint:"呕≠怄"},
+{ctx:"___ 不掩瑜",ans:"瑕",hint:"瑕≠暇"},
+{ctx:"___ 弩之末",ans:"强",hint:"读qiang"},
+{ctx:"声名___ 起",ans:"鹊",hint:"鹊≠雀"},
+{ctx:"___ 指气使",ans:"颐",hint:"用下巴指挥"},
+{ctx:"泾___ 分明",ans:"渭",hint:"两条河"},
+{ctx:"___ 纣为虐",ans:"助",hint:"帮助坏人"},
+{ctx:"___ 马厉兵",ans:"秣",hint:"喂马磨兵器"},
+{ctx:"___ 官野史",ans:"稗",hint:"稗≠裨"},
+{ctx:"___ 肉复生",ans:"髀",hint:"大腿"},
+{ctx:"___ 路蓝缕",ans:"筚",hint:"柴车"},
+{ctx:"刚___ 自用",ans:"愎",hint:"愎≠复"},
+{ctx:"并行不___",ans:"悖",hint:"悖≠背"},
+{ctx:"白___ 微瑕",ans:"璧",hint:"璧≠壁"},
+{ctx:"___ 门弄斧",ans:"班",hint:"班≠搬"},
+{ctx:"分道扬___",ans:"镳",hint:"马嚼子"},
+{ctx:"负___ 顽抗",ans:"隅",hint:"隅≠偶"},
+{ctx:"___ 底抽薪",ans:"釜",hint:"釜≠斧"},
+{ctx:"___ 功自傲",ans:"居",hint:"居≠倨"},
+{ctx:"___ 往不咎",ans:"既",hint:"既≠即"},
+{ctx:"___ 来之则安之",ans:"既",hint:"既然"},
+{ctx:"___ 言厉色",ans:"疾",hint:"疾≠急"},
+{ctx:"___ 腋成裘",ans:"集",hint:"集≠积"},
+{ctx:"___ 足先登",ans:"捷",hint:"捷≠截"},
+{ctx:"___ 泽而渔",ans:"竭",hint:"竭≠截"},
+{ctx:"___ 然一身",ans:"孑",hint:"独自一人"},
+{ctx:"___ 揉造作",ans:"矫",hint:"矫≠娇"},
+{ctx:"___ 枉过正",ans:"矫",hint:"纠正"},
+{ctx:"___ 犬吠尧",ans:"桀",hint:"夏桀"},
+{ctx:"___ 力悉敌",ans:"铢",hint:"古代重量单位"},
+{ctx:"秋___ 无犯",ans:"毫",hint:"毫≠豪"},
+{ctx:"___ 规曹随",ans:"萧",hint:"萧何"},
+{ctx:"___ 墙祸起",ans:"萧",hint:"内部"},
+{ctx:"___ 露头角",ans:"崭",hint:"崭≠斩"},
+{ctx:"___ 风沐雨",ans:"栉",hint:"梳头"},
+{ctx:"___ 比鳞次",ans:"栉",hint:"像梳齿排列"},
+{ctx:"___ 地有声",ans:"掷",hint:"扔"},
+{ctx:"___ 若罔闻",ans:"置",hint:"放在一边"},
+{ctx:"___ 膺惩前",ans:"毖",hint:"谨慎"},
+{ctx:"___ 竹难书",ans:"罄",hint:"用尽"},
+{ctx:"___ 次栉比",ans:"鳞",hint:"鳞≠麟"},
+{ctx:"___ 若晨星",ans:"寥",hint:"稀少"},
+{ctx:"___ 蚁溃堤",ans:"千",hint:"千里之堤"},
+{ctx:"___ 发难数",ans:"擢",hint:"拔（头发）"},
+{ctx:"___ 面杖吹火",ans:"擀",hint:"擀≠杆"},
+{ctx:"___ ___ 来迟",ans:"姗姗",hint:"走路缓慢从容"},
+{ctx:"___ 手可热",ans:"炙",hint:"炙≠灸"},
+{ctx:"防___ 杜渐",ans:"微",hint:"在微小处防止"},
+{ctx:"___ 不知耻",ans:"恬",hint:"安然"},
+{ctx:"___ 不知怪",ans:"恬",hint:"满不在乎"},
+{ctx:"白___ 过隙",ans:"驹",hint:"小白马"},
+{ctx:"___ 若观火",ans:"洞",hint:"清楚明白"},
+{ctx:"如___ 考妣",ans:"丧",hint:"读sang"},
+{ctx:"方枘圆___",ans:"凿",hint:"榫眼"},
+{ctx:"___ 豕不分",ans:"鲁",hint:"鲁国"},
+{ctx:"买___ 还珠",ans:"椟",hint:"木盒子"},
+{ctx:"___ 臂当车",ans:"螳",hint:"螳螂"},
+{ctx:"联___ 而至",ans:"袂",hint:"衣袖"},
+{ctx:"含英___ 华",ans:"咀",hint:"咀嚼"},
+{ctx:"不落___ 臼",ans:"窠",hint:"鸟兽窝"},
+{ctx:"___ 人摸象",ans:"盲",hint:"盲≠忙"},
+{ctx:"___ 顶之灾",ans:"灭",hint:""},
+{ctx:"___ 口同声",ans:"异",hint:"异≠一"},
+{ctx:"___ 劳永逸",ans:"一",hint:"一≠以"},
+{ctx:"广___ 无垠",ans:"袤",hint:"长度（南北）"},
+{ctx:"家___ 户晓",ans:"喻",hint:"喻≠谕"},
+{ctx:"层见___ 出",ans:"叠",hint:"不断出现"},
+{ctx:"大___ 渲染",ans:"肆",hint:"肆≠事"},
+{ctx:"陈词___ 调",ans:"滥",hint:"滥≠烂"},
+{ctx:"___ 发图强",ans:"奋",hint:"奋≠愤"},
+{ctx:"趋之若___",ans:"鹜",hint:"鸭子"},
+{ctx:"苦心孤___",ans:"诣",hint:"诣≠脂"},
+{ctx:"名副___ 实",ans:"其",hint:"其≠奇"},
+{ctx:"___ 序渐进",ans:"循",hint:"循≠寻"},
+{ctx:"因地___ 宜",ans:"制",hint:"制≠治"},
+{ctx:"___ 瑜互见",ans:"瑕",hint:"瑕≠暇"},
+{ctx:"一卷___ 浩繁",ans:"帙",hint:"书套"},
+{ctx:"蚍___ 撼树",ans:"蜉",hint:"大蚂蚁"},
+{ctx:"一___ 莫展",ans:"筹",hint:"筹≠愁"},
+{ctx:"越___ 代庖",ans:"俎",hint:"俎≠阻"},
+{ctx:"饮___ 止渴",ans:"鸩",hint:"鸩≠鸠"},
+{ctx:"风声鹤___",ans:"唳",hint:"鹤叫"},
+{ctx:"焚膏继___",ans:"晷",hint:"日影"},
+{ctx:"一___ 十寒",ans:"曝",hint:"晒"},
+{ctx:"钟灵___ 秀",ans:"毓",hint:"养育"},
+{ctx:"___ 短汲深",ans:"绠",hint:"井绳"},
+{ctx:"大___ 之用",ans:"瓠",hint:"葫芦"},
+{ctx:"不分轩___",ans:"轾",hint:"车前高后低"},
+{ctx:"___ 门宴",ans:"鸿",hint:"鸿≠宏"},
+{ctx:"金榜___ 名",ans:"题",hint:"题≠提"},
+{ctx:"___ 官贵人",ans:"达",hint:""},
+{ctx:"大___ 小怪",ans:"惊",hint:""},
+{ctx:"波___ 壮阔",ans:"澜",hint:"澜≠斓"},
+];
+
+const DSC=[
+{c1:"即",c2:"既",u1:"立即、即使、若即若离",u2:"既然、既往不咎、既成事实"},
+{c1:"燥",c2:"躁",u1:"干燥、燥热",u2:"烦躁、急躁、浮躁"},
+{c1:"筹",c2:"愁",u1:"一筹莫展、筹划",u2:"忧愁、愁眉苦脸"},
+{c1:"长",c2:"常",u1:"长期、长年累月",u2:"经常、老生常谈"},
+{c1:"采",c2:"彩",u1:"兴高采烈、无精打采",u2:"彩色、喝彩"},
+{c1:"裁",c2:"才",u1:"别出心裁、裁判",u2:"才能"},
+{c1:"部",c2:"步",u1:"部署、按部就班",u2:"脚步、步骤"},
+{c1:"是",c2:"事",u1:"各行其是、实事求是",u2:"事情、事半功倍"},
+{c1:"生",c2:"声",u1:"谈笑风生、生生不息",u2:"声音、声张"},
+{c1:"川",c2:"穿",u1:"川流不息",u2:"穿越"},
+{c1:"厉",c2:"励",u1:"再接再厉、严厉",u2:"鼓励、奖励"},
+{c1:"源",c2:"渊",u1:"源远流长、来源",u2:"渊博、深远"},
+{c1:"截",c2:"接",u1:"直截了当、截然不同",u2:"接受、直接"},
+{c1:"迹",c2:"绩",u1:"蛛丝马迹、痕迹",u2:"成绩、功绩"},
+{c1:"缈",c2:"渺",u1:"虚无缥缈",u2:"渺小、渺茫"},
+{c1:"怄",c2:"呕",u1:"怄气",u2:"呕心沥血"},
+{c1:"暄",c2:"喧",u1:"寒暄",u2:"喧哗、喧闹"},
+{c1:"弛",c2:"驰",u1:"松弛、一张一弛",u2:"奔驰、驰骋"},
+{c1:"缔",c2:"谛",u1:"取缔、缔造",u2:"真谛、谛听"},
+{c1:"崭",c2:"斩",u1:"崭露头角、崭新",u2:"斩断、斩首"},
+{c1:"萃",c2:"粹",u1:"出类拔萃、荟萃",u2:"纯粹、国粹"},
+{c1:"粟",c2:"栗",u1:"沧海一粟、粟米",u2:"不寒而栗、栗子"},
+{c1:"骛",c2:"鹜",u1:"好高骛远",u2:"趋之若鹜"},
+{c1:"璧",c2:"壁",u1:"完璧归赵、白璧微瑕",u2:"墙壁、悬崖峭壁"},
+{c1:"竣",c2:"峻",u1:"竣工",u2:"严峻、峻岭"},
+{c1:"灸",c2:"炙",u1:"针灸",u2:"脍炙人口、炙手可热"},
+{c1:"祟",c2:"崇",u1:"鬼鬼祟祟、作祟",u2:"崇高、崇拜"},
+{c1:"罔",c2:"惘",u1:"置若罔闻",u2:"迷惘"},
+{c1:"赃",c2:"脏",u1:"贪赃枉法、赃物",u2:"肮脏"},
+{c1:"藉",c2:"籍",u1:"慰藉、蕴藉",u2:"书籍、籍贯"},
+{c1:"迭",c2:"叠",u1:"更迭、迭代",u2:"重叠、叠床架屋"},
+{c1:"既",c2:"即",u1:"既往不咎、一如既往",u2:"即刻、可望而不可即"},
+{c1:"幅",c2:"辐",u1:"幅员辽阔、篇幅",u2:"辐射"},
+{c1:"竞",c2:"竟",u1:"竞争、竞赛",u2:"究竟、竟然"},
+{c1:"候",c2:"侯",u1:"时候、等候",u2:"诸侯、侯爵"},
+{c1:"概",c2:"慨",u1:"气概、大概",u2:"感慨、慷慨"},
+{c1:"详",c2:"祥",u1:"安详、端详",u2:"吉祥、祥瑞"},
+{c1:"辨",c2:"辩",u1:"辨别、明辨是非",u2:"辩论、辩解"},
+{c1:"坐",c2:"座",u1:"坐落、坐北朝南",u2:"座位、座右铭"},
+{c1:"帖",c2:"贴",u1:"妥帖、字帖",u2:"津贴、粘贴"},
+{c1:"搏",c2:"博",u1:"脉搏、搏斗",u2:"赌博、博学"},
+{c1:"赢",c2:"羸",u1:"赢家、输赢",u2:"羸弱"},
+{c1:"赝",c2:"膺",u1:"赝品",u2:"义愤填膺"},
+{c1:"荼",c2:"茶",u1:"如火如荼",u2:"茶叶"},
+{c1:"睐",c2:"来",u1:"青睐",u2:"来源"},
+{c1:"愎",c2:"复",u1:"刚愎自用",u2:"反复"},
+{c1:"柩",c2:"柜",u1:"灵柩",u2:"书柜"},
+{c1:"娩",c2:"挽",u1:"分娩",u2:"挽救"},
+{c1:"垣",c2:"桓",u1:"断壁残垣",u2:"齐桓公"},
+{c1:"恒",c2:"垣",u1:"恒心、永恒",u2:"断壁残垣"},
+];
+
+// ============================
+// 模块配置
+// ============================
+const mods=[
+{id:"dict",name:"词语听写",icon:"📝",desc:"120分",data:DICT,
+ render(q){return `<div class="prompt pinyin">${q.py}</div><div class="prompt defn">${q.df}</div>`},
+ answer(q){return `<div class="answer-text">${q.word}</div>${q.nt?`<div class="answer-note">⚠️ ${q.nt}</div>`:''}`}},
+{id:"idiom",name:"成语听写",icon:"📚",desc:"110分",data:IDM,
+ render(q){return `<div class="prompt pinyin">${q.py}</div><div class="prompt defn">${q.df}</div>`},
+ answer(q){return `<div class="answer-text">${q.idiom}</div>${q.nt?`<div class="answer-note">⚠️ ${q.nt}</div>`:''}`}},
+{id:"cmp",name:"部件组字",icon:"🧩",desc:"120分",data:CMP,
+ render(q){return `<div class="prompt">${q.cm}</div><div class="note">提示：${q.hint}</div>`},
+ answer(q){return `<div class="answer-text">${q.ans}</div>`}},
+{id:"poe",name:"诗词纠错",icon:"📜",desc:"120分",data:POE,
+ render(q){return `<div class="prompt poetry">${q.wg.replace(q.wc,`<span style="color:#c0392b;border-bottom:3px solid #c0392b;padding:0 4px;">${q.wc}</span>`)}</div><div class="answer-source">出处：${q.src}</div>`},
+ answer(q){return `<div class="answer-text">${q.cc}</div><div class="answer-note">应改为「${q.cc}」</div><div class="answer-source">${q.src}</div>`}},
+{id:"flb",name:"填字题",icon:"✏️",desc:"60分",data:FLB,
+ render(q){let c=q.ctx.replace("___",`<span class="blank">？</span>`);return `<div class="prompt ctx">${c}</div>${q.hint?`<div class="note">提示：${q.hint}</div>`:''}`},
+ answer(q){let c=q.ctx.replace("___",`<span style="color:#c0392b;font-weight:bold;font-size:120%;">${q.ans}</span>`);return `<div style="font-size:28px;margin:16px 0;">${c}</div>${q.hint?`<div class="answer-note">${q.hint}</div>`:''}`}},
+{id:"dsc",name:"字形辨析",icon:"🔍",desc:"易混字",data:DSC,
+ render(q){return `<table class="dtable"><tr><th>字形</th><td class="cc">${q.c1}</td><td class="cc">${q.c2}</td></tr><tr><th>用法</th><td>${q.u1}</td><td>${q.u2}</td></tr></table><div class="note" style="margin-top:12px;">请仔细观察两字的区别和用法</div>`},
+ answer(q){return `<div style="font-size:20px;margin:12px 0;"><span style="color:#c0392b;font-weight:bold;">${q.c1}</span> ↔ <span style="color:#c0392b;font-weight:bold;">${q.c2}</span></div><div class="note">记住区别：${q.u1.split('、')[0]} vs ${q.u2.split('、')[0]}</div>`}},
+{id:"review",name:"错题复习",icon:"🔄",desc:"待复习",data:[],
+ render(q){return this.answer(q)},
+ answer(q){return q._html||'<div>暂无数据</div>'}}
+];
+
+// ============================
+// 应用逻辑
+// ============================
+let cm=mods[0], ci=0, order=[], revealed=false, rl=[];
+function stats(){try{return JSON.parse(localStorage.getItem('hztx_stats')||'{}')}catch(e){return{}}}
+function saveStats(s){localStorage.setItem('hztx_stats',JSON.stringify(s))}
+function updateUI(){
+ let s=stats(), k=new Date().toDateString(), d=s[k]||{total:0,correct:0};
+ document.getElementById('tT').textContent=d.total;
+ document.getElementById('tC').textContent=d.correct;
+ document.getElementById('rC').textContent=rl.length;
+}
+function record(correct){
+ let s=stats(), k=new Date().toDateString();
+ if(!s[k])s[k]={total:0,correct:0};
+ s[k].total++; if(correct)s[k].correct++;
+ saveStats(s); updateUI();
+}
+function buildTabs(){
+ document.getElementById('tabBar').innerHTML=mods.map((m,i)=>`<button class="tab" data-idx="${i}" onclick="switchMod(${i})">${m.icon} ${m.name}</button>`).join('');
+}
+function switchMod(idx){
+ cm=mods[idx]; ci=0; revealed=false; sfl();
+ if(cm.id==='review'){cm.data=rl;if(!cm.data.length){document.getElementById('card').innerHTML='<div style="color:#999;font-size:18px;padding:40px;">✅ 暂无错题，继续刷题吧！</div>';return}sfl();}
+ document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',i===idx));
+ renderQ();
+}
+function sfl(){
+ let len=cm.data.length;
+ order=Array.from({length:len},(_,i)=>i);
+ for(let i=len-1;i>0;i--){let j=Math.floor(Math.random()*(i+1));[order[i],order[j]]=[order[j],order[i]]}
+}
+function item(){if(!order.length||ci>=order.length)return null;return cm.data[order[ci]]}
+function renderQ(){
+ let it=item(), card=document.getElementById('card');
+ if(!it){card.innerHTML=`<div style="color:#999;font-size:18px;padding:40px;">🎉 本轮刷完！<br><br><button class="btn btn-primary" onclick="sfl();ci=0;renderQ();">🔄 重新打乱再来一轮</button></div>`;return}
+ revealed=false;
+ let tot=cm.data.length, prog=((ci)/tot*100).toFixed(1);
+ card.innerHTML=`
+  <div class="section-title">${cm.icon} ${cm.name} · ${cm.desc}</div>
+  <div class="q-num">第 ${ci+1} / ${tot} 题</div>
+  <div class="pwrap"><div class="plabel"><span>进度</span><span>${ci+1}/${tot}</span></div><div class="pbar"><div class="pfill" style="width:${prog}%"></div></div></div>
+  ${cm.render(it)}
+  <div id="aa" class="answer-area"></div>
+  <div class="btn-row">
+   <button class="btn btn-primary" onclick="reveal()" id="btnR">👁️ 显示答案（空格键）</button>
+   <button class="btn btn-outline btn-sm" onclick="skip()" id="btnS">⏭ 跳过（→）</button>
+  </div>
+  <div id="asA" class="self-assess hidden"></div>`;
+ document.getElementById('btnR').focus();
+}
+function reveal(){
+ if(revealed)return; revealed=true;
+ let it=item(); if(!it)return;
+ document.getElementById('aa').innerHTML=cm.answer(it);
+ document.getElementById('aa').classList.add('show');
+ document.getElementById('asA').innerHTML=`<button class="btn btn-success" onclick="mc()">✅ 写对了</button><button class="btn btn-danger" onclick="mw()">❌ 没写对</button><button class="btn btn-outline btn-sm" onclick="mr()">📌 加入复习</button>`;
+ document.getElementById('asA').classList.remove('hidden');
+ document.getElementById('btnR').disabled=true;
+ document.getElementById('btnS').disabled=true;
+}
+function mc(){record(true);nxt()}
+function mw(){record(false);addR();nxt()}
+function mr(){addR();nxt()}
+function addR(){
+ let it=item(); if(!it)return;
+ let h=cm.render(it)+'<div style="margin-top:12px;">'+cm.answer(it)+'</div>';
+ let ri={...it,_html:h,_module:cm.id};
+ let dup=rl.find(r=>(r.word&&ri.word&&r.word===ri.word)||(r.idiom&&ri.idiom&&r.idiom===ri.idiom)||(r.ans&&ri.ans&&r.ans===ri.ans));
+ if(!dup)rl.push(ri);
+ updateUI();
+}
+function skip(){nxt()}
+function nxt(){ci++;renderQ()}
+document.addEventListener('keydown',e=>{
+ if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+ switch(e.code){
+  case'Space':e.preventDefault();if(!revealed)reveal();break;
+  case'ArrowRight':e.preventDefault();if(revealed)nxt();else skip();break;
+  case'KeyA':if(revealed){e.preventDefault();mc()}break;
+  case'KeyD':if(revealed){e.preventDefault();mw()}break;
+  case'KeyR':if(revealed){e.preventDefault();mr()}break;
+ }
+});
+function resetAll(){
+ if(confirm('确定要重置今日数据吗？')){localStorage.removeItem('hztx_stats');rl=[];updateUI();sfl();ci=0;renderQ()}
+}
+// init
+buildTabs(); sfl(); updateUI(); renderQ();
+document.querySelectorAll('.tab')[0]?.classList.add('active');
+</script>
+<!-- 版权声明 -->
+<div style="text-align:center;padding:16px 10px;margin-top:24px;color:#4a5568;font-size:13px;border-top:1px solid #e2e8f0;background:#f7fafc;line-height:1.8;">
+  本作品由 <strong style="color:#1a5276;">包头市第四中学 张巍老师</strong> 创作，保留所有权利。<br>
+  <span style="color:#a0aec0;font-size:12px;">© 2026 汉字听写大赛训练系统</span>
+</div>
+</body>
+</html>
