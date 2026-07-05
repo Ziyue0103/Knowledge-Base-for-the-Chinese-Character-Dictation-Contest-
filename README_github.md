@@ -1,13 +1,4 @@
----
-AIGC:
-    Label: "1"
-    ContentProducer: 001191110102MACQD9K64018705
-    ProduceID: 7631044275479871744-data_volume/files/所有对话/主对话/汉字听写大赛/README_github.md
-    ReservedCode1: ""
-    ContentPropagator: 001191110102MACQD9K64028705
-    PropagateID: 3217615543351940#1783271346909
-    ReservedCode2: ""
----
+
 <div align="center">
 
 # 📝 汉字听写大赛备赛知识库
@@ -196,8 +187,6 @@ Knowledge-Base-for-the-Chinese-Character-Dictation-Contest-/
 
 ## 🙏 致谢
 
-- 感谢 **包头市汉字听写大赛组委会** 提供的平台与机会
-- 感谢 **包头市第四中学** 对教育信息化建设的支持
 - 感谢所有参与备赛训练的同学们，你们的反馈让这套系统不断完善
 - 感谢每一位热爱汉字文化的传承者
 
@@ -217,4 +206,3 @@ _愿每一位选手都能在汉字听写大赛中绽放光彩！_ ✨
 
 ---
 
-> 本内容由 Coze AI 生成，请遵循相关法律法规及《人工智能生成合成内容标识办法》使用与传播。
