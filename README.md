@@ -181,7 +181,7 @@ Knowledge-Base-for-the-Chinese-Character-Dictation-Contest-/
   <em>关注「可亲的灯火」获取更多语文教学资源</em>
 </p>
 
-欢迎提出建议、反馈问题或交流教学经验！
+网页目前仍处于初级阶段，尚有诸多不足，欢迎大家提出建议、反馈问题或交流教学经验！
 
 ---
 
